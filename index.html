@@ -54,31 +54,65 @@
 						</p>
 					</section>
 					<section>
-						<img src="img/glados.jpg" alt="GLaDOS">
+						<h2>Requisitos</h2>
+						<p>
+							<ul>
+								<li>Lenguaje dinámico</li>
+								<ul>
+									<li>Javascript</li>
+									<li>Python</li>
+									<li>Ruby</li>
+									<li>...</li>
+								</ul>
+							</ul>
+						</p>
+					</section>
+					<section>
+						<h2>De qué va todo esto?</h2>
+						<pre>
+							<code contenteditable class="python">
+<span>class MiClase():
+	"""Una clase normalita y corriente con un método"""
+	def valor():
+		return 1
+objeto = MiClase()
+objeto.valor()			# 1
+
+def suma(x,y):
+	return x + y
+
+objeto.suma = suma
+
+objeto.suma(1,2)		# 3
+
+o = MiClase()
+o.suma(1,2)				# ??</span>
+							</code>
+						</pre>
 					</section>
 				</section>
 
 				<section>
 					<section>
-						<h2>Primer ejemplo</h2>
+						<h2>Tipos</h2>
 						<pre>
 							<code contenteditable class="python">
-<span>>> class A:
-	"""Una clase cualquiera"""
+								<p class="fragment" data-fragment-index='0' style="margin-bottom:-15px">>> type(5)</p>
+								<p class="fragment" data-fragment-index='1' style="margin-bottom:-15px">>> type([1,2,3])</p>
+								<p class="fragment" data-fragment-index='2' style="margin-bottom:-15px">>> type(list)</p>
+								<p class="fragment" data-fragment-index='3' style="margin-bottom:-15px">>> type(type)</p>
+								<div class="fragment" data-fragment-index='4'>
+<span>>> def fun():
+	pass
 
->> a = A()</span>
-								<p class="fragment" data-fragment-index='0' style="margin-bottom:-15px">>> type(A)</p>
-								<p class="fragment" data-fragment-index='1' style="margin-bottom:-15px">>> type(a)</p>
-								<p class="fragment" data-fragment-index='2' style="margin-bottom:-15px">>> type(5)</p>
-								<p class="fragment" data-fragment-index='3' style="margin-bottom:-15px">>> type([])</p>
-								<p class="fragment" data-fragment-index='4' style="margin-bottom:-15px">>> type(list)</p>
-								<p class="fragment" data-fragment-index='5' style="margin-bottom:-15px">>> type(type)</p>
+>> type(fun)</span>
+								</div>
 
 							</code>
 						</pre>
 					</section>
 					<section>
-						<h2>First-class citizens</h2>
+						<h2>First-class objects</h2>
 						<ul>
 							<li> Las funciones son objetos </li>
 						</ul>
@@ -87,13 +121,80 @@
 <span>def suma(a,b):
 	return a+b
 
-nuevo_nombre = suma
-print nuevo_nombre(1,2) # 3</span>
+funcion = suma
+print funcion(1,2) # 3</span>
+							</code>
+						</pre>
+					</section>
+					<section>
+						<h2>First-class objects</h2>
+						<ul>
+							<li> Las funciones pueden devolver funciones </li>
+						</ul>
+						<pre>
+							<code contenteditable class="python">
+<span>>> def generate():
+	def result():
+		print "It works ;-)"
+	return result
+
+>> fun = generate()
+>> fun()</span>		
 							</code>
 						</pre>
 					</section>
 				</section>
+				<section>
+					<section>
+						<h2>Decoradores</h2>
+							<pre><code>
+<span>>> def decorador(f):
+	def resultado(*args,**kwargs):
+		print "Entrando"
+		f(*args,**kwargs)
+		print "Saliendo"
+	return resultado
 
+@decorador
+def funcion(a):
+	print a
+
+funcion("Estoy decorada ^^")</span>
+							</code></pre>
+					</section>
+					<section>
+						<h2>Vale, pero... para qué quiero yo eso?</h2>
+					</section>
+					<section>
+						<h2>Ejemplo de decoradores</h2>
+						<ul>
+							<li>Añadir Caché a una operación</li>
+						</ul>
+						<pre><code class="python">
+<span>>> def cache(f):
+	almacen = {}
+	def funcion(*args, **kwargs):
+		key = hash(args)
+		key2 = hash(tuple(kwargs.iteritems()))
+		try:
+			resultado = almacen[key, key2]
+		except KeyError:
+			almacen[key,key2] = f(*args,**kwargs)
+			resultado = almacen[key, key2]
+		return resultado
+	return funcion
+
+>> @cache
+def suma(a,b):
+	return a + b</span>
+						</code></pre>
+						<aside class="notes">Habla sobre las closures</aside>
+					</section>
+				</section>
+				<section>
+					<p class="fragment fade-out" data-fragment-index='0'>DRY</p>
+					<p class="fragment roll-in" data-fragment-index='0'>Don't Repeat Yourself</p>
+				</section>
 			</div>
 
 		</div>
@@ -112,7 +213,7 @@ print nuevo_nombre(1,2) # 3</span>
 				center: true,
 
 				theme: Reveal.getQueryHash().theme, // available themes are in /css/theme
-				transition: Reveal.getQueryHash().transition || 'default', // default/cube/page/concave/zoom/linear/fade/none
+				transition: Reveal.getQueryHash().transition || 'linear', // default/cube/page/concave/zoom/linear/fade/none
 
 				// Optional libraries used to extend on reveal.js
 				dependencies: [
