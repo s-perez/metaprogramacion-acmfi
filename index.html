@@ -41,10 +41,6 @@
 					<h1>PYCEPTION</h1>
 					<h3>Metaprogramación en Python</h3>
 					<img src="img/manos.png" alt="'Manos dibujando' por M.C. Escher">
-					<p>
-						<small>Salvador Pérez Martín / <a href="http://twitter.com/kuraikibo">@kuraikibo</a></small><br/>
-						<small><a href="mailto:salva@acm.asoc.fi.upm.es">salva@acm.asoc.fi.upm.es</a></small>
-					</p>
 				</section>
 				<section>
 					<section>
@@ -139,7 +135,7 @@ print funcion(1,2) # 3</span>
 	return result
 
 >> fun = generate()
->> fun()</span>		
+>> fun()</span>
 							</code>
 						</pre>
 					</section>
@@ -192,8 +188,183 @@ def suma(a,b):
 					</section>
 				</section>
 				<section>
-					<p class="fragment fade-out" data-fragment-index='0'>DRY</p>
-					<p class="fragment roll-in" data-fragment-index='0'>Don't Repeat Yourself</p>
+					<section>
+						<h1 class="fragment fade-out" data-fragment-index='0'>DRY</h1>
+						<h1 class="fragment roll-in" data-fragment-index='0'>Don't Repeat Yourself</h1>
+					</section>
+					<section>
+						<h2>Esto en java (por ejemplo)...</h2>
+						<pre><code class="java">
+<span>>> public class MiClase{
+	private int a
+	private String b
+	private boolean c
+
+	public int getA(){
+		return this.a;
+	}
+	public String getB(){
+		return this.b;
+	}
+	public boolean getC(){
+		return this.c;
+	}
+}</span>
+						</code></pre>
+						<p class="fragment" data-fragment-index='0'>Me temo que no se cumple</p>
+					</section>
+					<section>
+						<h2>Metaprogramación</h2>
+						<p>En Python si se puede</p>
+						<pre><code class="python">
+<span>>> class MiClase():
+	def __init__(self):
+		self.a = 5
+		self.b = 'blr'
+		self.c = True
+
+	def build_get(var):
+		def funcion(self):
+			return getattr(self,var,None)
+		return funcion
+
+	getA = build_get('a')
+	getB = build_get('b')
+	getC = build_get('c')</span>
+						</code></pre>
+					</section>
+					<section>
+						<h1>¿Se puede acortar más?</h1>
+					</section>
+					<section>
+						<pre><code class="python">
+<span>>> class MiClase():
+	def __init__(self):
+		self.a = 5
+		self.b = 'blr'
+		self.c = True
+
+	def build_get(var):
+		def funcion(self):
+			return getattr(self,var,None)
+		return funcion
+
+	getA = build_get('a')
+	getB = build_get('b')
+	getC = build_get('c')
+
+>> class MiSegundaClase():
+	def __init__(self):
+		self.a = 5
+		self.b = 'blr'
+		self.c = True
+
+	def build_get(var):
+		def funcion(self):
+			return getattr(self,var,None)
+		return funcion
+
+	getA = build_get('a')
+	getB = build_get('b')
+	getC = build_get('c')</span>
+						</code></pre>
+					</section>
+					<section>
+						<h2>Sí</h2>
+						<pre><code class="python">
+<span>>> def build_get(var):
+	def funcion(self):
+		return getattr(self,var,None)
+	return funcion
+
+>> class MiClase():
+	def __init__(self):
+		self.a = 5
+		self.b = 'blr'
+		self.c = True
+
+>> class MiSegundaClase():
+	def __init__(self):
+		self.a = 5
+		self.b = 'blr'
+		self.c = True
+
+>> for e in ['a','b','c']:
+	setattr(MiClase,"get%s" % e,build_get(e))
+	setattr(MiSegundaClase,"get%s" % e,build_get(e))
+</span>
+						</code></pre>
+					</section>
+				</section>
+				<section>
+					<section>
+						<h2>Buenas APIs</h2>
+						<p>¿Qué características son necesarias?</p>
+						<ul>
+							<li class="fragment" data-fragment-index='0'>Natural</li>
+							<li class="fragment" data-fragment-index='1'>Predecible</li>
+							<li class="fragment" data-fragment-index='2'>Fácil de mantener</li>
+							<li class="fragment" data-fragment-index='3'>Fácil de extender</li>
+						</ul>
+					</section>
+					<section>
+						<h2>¿Qué va a pasar aquí?</h2>
+						<pre><code class="python">
+<span>>> class ShopQueries():
+	"""A web for my own shop"""
+>> s = ShopQueries()
+>> s.getItems()
+</span>
+						</code></pre>
+					</section>
+					<section>
+						<h2>¿Cómo sabe Python que no existe?</h2>
+						<ol>
+							<li class="fragment" data-fragment-index='0'>Busca en el objeto</li>
+							<li class="fragment" data-fragment-index='1'>Busca en su clase</li>
+							<li class="fragment" data-fragment-index='2'>Busca en sus superclases</li>
+							<li class="fragment" data-fragment-index='3'>...</li>
+						</ol>
+					</section>
+					<section>
+						<h2>¿Y cómo busca Python?</h2>
+						<p>cuando llamas a un método, estás llamando a objeto.__getattribute__("nombre del metodo")</p>
+						<h3 class="fragment" data-fragment-index='0'>Vamos a sobreescribirlo!!</h3>
+					</section>
+					<section>
+						<pre><code class="python">
+<span>class ShopQueries():
+	"""A web for my own shop"""
+	def build_get(var):
+		def funcion(self):
+			return getattr(self,var,None)
+		return funcion
+	def __getattribute__(self, name):
+		if not hasattr(self, name):
+			if name[:3] == 'get':
+				setattr(ShopQueries,"get%s" % name,build_get(name[3:]))
+			return super(ShopQueries,self).__getattribute__(name)
+
+
+>> s = ShopQueries()
+>> s.getItems()</span>
+						</code></pre>
+					</section>
+				</section>
+				<section>
+					<h2>Cosas para leer</h2>
+					<ul>
+						<li><a href="http://unoyunodiez.com/2012/03/31/metaprogramacion-en-python/">Metaprogramación en python</a> por Salvador de la Puente </li>
+						<li><a href="http://pyvideo.org/video/302/pycon-2010--python-metaprogramming---64">Python Metaprogramming</a> por Nicolas Lara</li>
+						<li><a href="http://www.devx.com/opensource/Article/31482">Dig Deep into Python Internals</a> por Gigi Sayfan</li>
+					</ul>
+				</section>
+				<section>
+					<h2>Sobre mí</h2>
+					<p>
+						<small>Salvador Pérez Martín / <a href="http://twitter.com/kuraikibo">@kuraikibo</a></small><br/>
+						<small><a href="mailto:salva@acm.asoc.fi.upm.es">salva@acm.asoc.fi.upm.es</a></small>
+					</p>
 				</section>
 			</div>
 
